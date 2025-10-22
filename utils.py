@@ -14,7 +14,7 @@ def load_prompt(prompt):
 
 
 async def send_message(update: Update, context: ContextTypes.DEFAULT_TYPE, message: str):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode=ParseMode.MARKDOWN)
+    return await context.bot.send_message(chat_id=update.effective_chat.id, text=message, parse_mode=ParseMode.MARKDOWN)
 
 
 async def send_message_with_buttons(update: Update, context: ContextTypes.DEFAULT_TYPE, message: str, reply_text: str,

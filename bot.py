@@ -4,21 +4,16 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from utils import send_message, send_message_with_buttons, load_message
+from GPT import GPT
+from utils import send_message, send_message_with_buttons, load_message, load_prompt
 
 load_dotenv()
-client = OpenAI()
+chat_gpt = GPT(token=os.getenv("OPENAI_API_KEY"))
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = load_message("main")
     await send_message(update, context, message)
-
-
-async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text_caps = ' '.join(context.args).upper()
-    await send_message(update, context, text_caps)
-    print(update.message.from_user.username + " - " + update.message.text)
 
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -34,27 +29,33 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    response = client.responses.create(
-        model="o4-mini",
-        input='Write a random fact'
-    )
-    await send_message_with_buttons(update, context, response.output_text, "Бажаєте ще один факт?",
-                                    ("Закінчити", "Хочу ще факт!"))
+    wait_message = await send_message(update, context, "Думаю над цікавим фактом...")
+
+    try:
+        prompt = load_prompt("random")
+        random_fact = await chat_gpt.send_question(prompt, "Напиши цікавий факт")
+
+        await send_message_with_buttons(update, context, random_fact, "Бажаєте ще один факт?",
+                                        ("Закінчити", "Хочу ще факт!"))
+        await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=wait_message.message_id)
+    except Exception as error:
+        print(f"Помилка при оброці запита - {error}")
+        await send_message(update, context, "Сталася помилка при обробці запита, спробуйте пізніше.")
 
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
 
     start_handler = CommandHandler('start', start)
-    caps_handler = CommandHandler('caps', caps)
     random_handler = CommandHandler('random', random)
     button_handler = MessageHandler(filters.TEXT, button_handler)
-    unknown_handler = MessageHandler(filters.COMMAND, unknown)
 
-    application.add_handler(caps_handler)
     application.add_handler(start_handler)
     application.add_handler(random_handler)
     application.add_handler(button_handler)
+
+    unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
 
+    print("Bot started.")
     application.run_polling()
