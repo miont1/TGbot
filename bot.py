@@ -10,9 +10,16 @@ load_dotenv()
 chat_gpt = GPT(token=os.getenv("OPENAI_API_KEY"))
 
 
+def check_context(context):
+    if "mode" not in context.user_data:
+        context.user_data["mode"] = ""
+    if "history" not in context.user_data:
+        context.user_data["history"] = []
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data["mode"] = ""
-    context.user_data["history"] = []
+    check_context(context)
+
     message = load_message("main")
     photo = load_photo("main")
     await send_photo(update, context, photo)
@@ -20,10 +27,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if "mode" not in context.user_data:
-        context.user_data["mode"] = ""
-    if "history" not in context.user_data:
-        context.user_data["history"] = []
+    check_context(context)
 
     text = update.message.text
 
@@ -70,6 +74,40 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 answer = await chat_gpt.add_user_question(context, text)
                 await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=wait_message.message_id)
                 await send_message_with_buttons(update, context, answer, None, ("Закінчити",))
+    elif context.user_data["mode"] == "quiz":
+        if context.user_data["status"] == "question":
+            wait_message = await send_message(update, context, "Думаю над питанням...")
+            answer = await chat_gpt.add_user_question(context, text)
+            await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=wait_message.message_id)
+            await send_message(update, context, answer)
+            context.user_data["status"] = "answer"
+
+        elif context.user_data["status"] == "answer":
+            wait_message = await send_message(update, context, "Думаю над відповіддю...")
+            answer = await chat_gpt.add_user_question(context, text)
+            await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=wait_message.message_id)
+            await send_message(update, context, answer)
+            await send_message_with_buttons(update, context, "Оберіть тему.", None,
+                                            ("Python", "Математика", "Біологія", ("Попередня тема", "Закінчити")))
+            context.user_data["status"] = "question"
+
+
+async def quiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    check_context(context)
+    context.user_data["mode"] = "quiz"
+    context.user_data["status"] = "question"
+
+    photo = load_photo("quiz")
+    await send_photo(update, context, photo)
+    message = load_message("quiz")
+    if not context.user_data["history"]:
+        await send_message_with_buttons(update, context, message, None,
+                                        ("Python", "Математика", "Біологія"))
+    else:
+        await send_message_with_buttons(update, context, message, None,
+                                        ("Python", "Математика", "Біологія", "Попередня тема"))
+
+    await chat_gpt.set_user_prompt(context, load_prompt("quiz"))
 
 
 async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -90,8 +128,8 @@ async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    check_context(context)
     context.user_data["mode"] = "chat"
-    context.user_data["history"] = []
 
     photo = load_photo("gpt")
     await send_photo(update, context, photo)
@@ -101,8 +139,8 @@ async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def talk(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    check_context(context)
     context.user_data["mode"] = "talk"
-    context.user_data["history"] = []
 
     photo = load_photo("talk")
     await send_photo(update, context, photo)
@@ -123,12 +161,15 @@ if __name__ == '__main__':
     button_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler)
     gpt_handler = CommandHandler('gpt', gpt)
     talk_handler = CommandHandler('talk', talk)
+    quiz_handler = CommandHandler('quiz', quiz)
 
     application.add_handler(start_handler)
     application.add_handler(random_handler)
     application.add_handler(button_handler)
     application.add_handler(gpt_handler)
     application.add_handler(talk_handler)
+    application.add_handler(quiz_handler)
+
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
     print("Bot started.")

@@ -33,8 +33,13 @@ async def send_message_with_buttons(update: Update, context: ContextTypes.DEFAUL
         await send_message(update, context, message)
 
     keyboard = []
+
     for button in buttons:
-        keyboard.append((button,))
+        if isinstance(button, (tuple, list)):
+            keyboard.append(tuple(button))  # кілька кнопок у рядку
+        else:
+            keyboard.append((button,))  # одна кнопка в рядку
+
     reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True, one_time_keyboard=True)
     if reply_text is None:
         reply_text = message

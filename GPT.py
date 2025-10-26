@@ -31,6 +31,7 @@ class GPT:
 
     @staticmethod
     async def set_user_prompt(context, prompt_text):
+        context.user_data["history"].clear()
         context.user_data["history"].append({"role": "system", "content": prompt_text})
 
     async def add_user_question(self, context, question_text):
