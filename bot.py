@@ -9,12 +9,10 @@ from utils import send_message, send_message_with_buttons, load_message, load_pr
 load_dotenv()
 chat_gpt = GPT(token=os.getenv("OPENAI_API_KEY"))
 
-mode = ""
-
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global mode
-    mode = ""
+    context.user_data["mode"] = ""
+    context.user_data["history"] = []
     message = load_message("main")
     photo = load_photo("main")
     await send_photo(update, context, photo)
@@ -22,15 +20,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if "mode" not in context.user_data:
+        context.user_data["mode"] = ""
+    if "history" not in context.user_data:
+        context.user_data["history"] = []
+
     text = update.message.text
     if text == "Хочу ще факт!":
         await random(update, context)
     elif text == "Закінчити":
         await start(update, context)
-    elif mode == "chat":
+    elif context.user_data["mode"] == "chat":
         wait_message = await send_message(update, context, "Даю відповідь на питання...")
         try:
-            answer = await chat_gpt.add_question(text)
+            answer = await chat_gpt.add_user_question(context, text)
             await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=wait_message.message_id)
             await send_message_with_buttons(update, context, answer, None, ("Закінчити",))
         except Exception as error:
@@ -56,12 +59,13 @@ async def random(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global mode
-    mode = "chat"
+    context.user_data["mode"] = "chat"
+    context.user_data["history"] = []
+
     photo = load_photo("gpt")
     await send_photo(update, context, photo)
     message = load_message("gpt")
-    await chat_gpt.set_prompt(load_prompt("gpt"))
+    await chat_gpt.set_user_prompt(context, load_prompt("gpt"))
     await send_message(update, context, message)
 
 
@@ -83,6 +87,5 @@ if __name__ == '__main__':
     application.add_handler(gpt_handler)
     unknown_handler = MessageHandler(filters.COMMAND, unknown)
     application.add_handler(unknown_handler)
-
     print("Bot started.")
     application.run_polling()

@@ -1,4 +1,5 @@
 from openai import AsyncOpenAI
+from telegram.ext import ContextTypes
 
 
 class GPT:
@@ -17,13 +18,24 @@ class GPT:
         self.messages.append({"role": "assistant", "content": message})
         return message
 
-    async def set_prompt(self, prompt_text):
-        self.messages.clear()
-        self.messages.append({"role": "system", "content": prompt_text})
+    async def send_messages_contex(self, context: ContextTypes.DEFAULT_TYPE):
+        response = await self.client.responses.create(
+            model="o4-mini",
+            input=context.user_data["history"],
+            max_output_tokens=3000,
+        )
 
-    async def add_question(self, question_text):
-        self.messages.append({"role": "user", "content": question_text})
-        return await self.send_messages()
+        message = response.output_text
+        context.user_data["history"].append({"role": "assistant", "content": message})
+        return message
+
+    @staticmethod
+    async def set_user_prompt(context, prompt_text):
+        context.user_data["history"].append({"role": "system", "content": prompt_text})
+
+    async def add_user_question(self, context, question_text):
+        context.user_data["history"].append({"role": "user", "content": question_text})
+        return await self.send_messages_contex(context)
 
     async def send_question(self, prompt_text, question_text):
         self.messages.clear()
