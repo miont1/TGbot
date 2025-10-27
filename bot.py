@@ -19,6 +19,8 @@ def check_context(context):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     check_context(context)
+    context.user_data["mode"] = ""
+    context.user_data["history"] = []
 
     message = load_message("main")
     photo = load_photo("main")
@@ -44,27 +46,23 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as error:
             print(f"Помилка при обробці запита - {error}")
             await send_message(update, context, "Сталася помилка при обробці запита, спробуйте пізніше.")
+
     elif context.user_data["mode"] == "talk":
-        if text == "Курт Кобейн":
-            await send_photo(update, context, load_photo("talk_cobain"))
-            await send_message_with_buttons(update, context, "Привіт! Курт Кобейн слухає!", None, ("Закінчити",))
-            await chat_gpt.set_user_prompt(context, load_prompt("talk_cobain"))
-        elif text == "Єлизавета II":
-            await send_photo(update, context, load_photo("talk_queen"))
-            await send_message_with_buttons(update, context, "Привіт! Єлизавета II слухає!", None, ("Закінчити",))
-            await chat_gpt.set_user_prompt(context, load_prompt("talk_queen"))
-        elif text == "Джон Толкін":
-            await send_photo(update, context, load_photo("talk_tolkien"))
-            await send_message_with_buttons(update, context, "Привіт! Джон Толкін слухає!", None, ("Закінчити",))
-            await chat_gpt.set_user_prompt(context, load_prompt("talk_tolkien"))
-        elif text == "Фрідріх Ніцше":
-            await send_photo(update, context, load_photo("talk_nietzsche"))
-            await send_message_with_buttons(update, context, "Привіт! Фрідріх Ніцше слухає!", None, ("Закінчити",))
-            await chat_gpt.set_user_prompt(context, load_prompt("talk_nietzsche"))
-        elif text == "Стівен Гокінг":
-            await send_photo(update, context, load_photo("talk_hawking"))
-            await send_message_with_buttons(update, context, "Привіт! Стівен Гокінг слухає!", None, ("Закінчити",))
-            await chat_gpt.set_user_prompt(context, load_prompt("talk_hawking"))
+
+        talk_list = {
+            "Курт Кобейн": ("talk_cobain", "Привіт! Курт Кобейн слухає!"),
+            "Єлизавета II": ("talk_queen", "Привіт! Єлизавета II слухає!"),
+            "Джон Толкін": ("talk_tolkien", "Привіт! Джон Толкін слухає!"),
+            "Фрідріх Ніцше": ("talk_nietzsche", "Привіт! Джон Толкін слухає!"),
+            "Стівен Гокінг": ("talk_hawking", "Привіт! Стівен Гокінг слухає!")
+        }
+
+        person = talk_list.get(text)
+        if person:
+            print(person)
+            await send_photo(update, context, load_photo(person[0]))
+            await send_message_with_buttons(update, context, person[1], None, ("Закінчити",))
+            await chat_gpt.set_user_prompt(context, load_prompt(person[0]))
         else:
             if not context.user_data["history"]:
                 await send_message(update, context,
@@ -74,6 +72,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 answer = await chat_gpt.add_user_question(context, text)
                 await context.bot.delete_message(chat_id=update.effective_chat.id, message_id=wait_message.message_id)
                 await send_message_with_buttons(update, context, answer, None, ("Закінчити",))
+
     elif context.user_data["mode"] == "quiz":
         if context.user_data["status"] == "question":
             wait_message = await send_message(update, context, "Думаю над питанням...")
