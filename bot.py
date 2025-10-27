@@ -59,7 +59,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         person = talk_list.get(text)
         if person:
-            print(person)
             await send_photo(update, context, load_photo(person[0]))
             await send_message_with_buttons(update, context, person[1], None, ("Закінчити",))
             await chat_gpt.set_user_prompt(context, load_prompt(person[0]))
