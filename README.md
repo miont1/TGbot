@@ -1,67 +1,69 @@
-# 🤖 Багатофункціональний Telegram Бот
+# 🤖 Telegram Bot
 
-Це Telegram-бот, написаний на Python, який використовує API OpenAI (GPT) для надання різноманітних інтерактивних послуг. Бот використовує систему режимів для керування різними функціями, такими як чат, вікторини, розмови з відомими особистостями тощо.
+This is a Telegram bot written in **Python** that uses the **OpenAI API (GPT)** to provide a variety of interactive services.
+The bot uses a **mode system** to manage different functionalities, such as chatting, quizzes, conversations with famous people, and more.
 
-## 🌟 Основні можливості
+## 🌟 Main Features
 
-Бот має 6 основних режимів, які викликаються командами:
+The bot has **6 main modes**, accessible via commands:
 
-* **`/gpt`** — Режим загального чату. Дозволяє вести вільну розмову з AI.
-* **`/talk`** — Симулятор розмови. Дозволяє "поспілкуватися" з однією з п'яти відомих особистостей (Курт Кобейн, Єлизавета II, Джон Толкін, Фрідріх Ніцше, Стівен Гокінг).
-* **`/quiz`** — Вікторина. Бот генерує питання на обрану тему (Python, Математика, Біологія), а потім перевіряє вашу відповідь.
-* **`/image_describe`** — Опис зображень. Надішліть боту фото, і він розповість, що на ньому зображено (використовуючи GPT-Vision).
-* **`/translate`** — Перекладач. Швидко перекладає ваш текст між українською та англійською мовами.
-* **`/random`** — Випадковий факт. Бот генерує та надсилає один цікавий факт.
+* **`/gpt`** — General chat mode. Allows free conversation with AI.
+* **`/talk`** — Conversation simulator. Lets you “talk” to one of five famous personalities (Kurt Cobain, Queen Elizabeth II, J.R.R. Tolkien, Friedrich Nietzsche, Stephen Hawking).
+* **`/quiz`** — Quiz mode. The bot generates a question on a chosen topic (Python, Math, Biology) and checks your answer.
+* **`/image_describe`** — Image description. Send a photo, and the bot will describe what’s in it (powered by GPT-Vision).
+* **`/translate`** — Translator. Instantly translates your text between English and Ukrainian.
+* **`/random`** — Random fact. The bot sends one interesting fact.
 
-Команду `/start` можна використовувати будь-коли, щоб скинути поточний режим і повернутися в головне меню.
+You can use `/start` at any time to reset the current mode and return to the main menu.
 
-## 🛠️ Встановлення та налаштування
+## 🛠️ Installation and Setup
 
-Щоб запустити цього бота локально, виконайте наступні кроки.
+To run this bot locally, follow these steps:
 
-### 1. Клонуйте репозиторій
+### 1. Clone the repository
 
 ```bash
-git clone [https://github.com/miont1/TGbot.git](https://github.com/miont1/TGbot.git)
+git clone https://github.com/miont1/TGbot.git
 cd TGbot
 ```
 
-### 2. Створіть віртуальне середовище (Рекомендовано)
+### 2. Create a virtual environment (recommended)
 
 ```bash
-# Для Windows
+# For Windows
 python -m venv venv
 venv\Scripts\activate
 
-# Для macOS/Linux
+# For macOS/Linux
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Встановіть залежності
+### 3. Install dependencies
 
-Для роботи бота необхідні всі бібліотеки, зазначені у файлі `requirements.txt`.
-Щоб встановити їх, виконайте команду:
+All required libraries are listed in the **`requirements.txt`** file.
+To install them, run:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Налаштуйте конфігурацію
+### 4. Configure environment variables
 
-Створіть файл `.env` у кореневій папці проєкту та додайте до нього ваші API-ключі:
+Create a **`.env`** file in the project’s root directory and add your API keys:
 
 ```.env
 OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
 BOT_TOKEN=YOUR_TELEGRAM_BOT_TOKEN_HERE
 ```
 
-* `BOT_TOKEN`: Отримайте його від [@BotFather](https://t.me/BotFather) в Telegram.
-* `OPENAI_API_KEY`: Отримайте його з вашого [OpenAI Dashboard](https://platform.openai.com/account/api-keys).
+* **`BOT_TOKEN`** — Obtain it from [@BotFather](https://t.me/BotFather) on Telegram.
+* **`OPENAI_API_KEY`** — Get it from your [OpenAI Dashboard](https://platform.openai.com/account/api-keys).
 
-### 5. Структура проєкту (Важливо!)
+### 5. Project structure (important!)
 
-Цей бот завантажує ресурси (тексти промптів, повідомлення та фото) з папки `resources` за допомогою функцій у `utils.py`. Переконайтеся, що у вас є така структура:
+This bot loads resources (prompt texts, messages, and images) from the `resources` folder using helper functions in `utils.py`.
+Make sure your directory structure looks like this:
 
 ```
 TGbot/
@@ -70,35 +72,36 @@ TGbot/
 │   │   ├── main.txt
 │   │   ├── gpt.txt
 │   │   ├── talk.txt
-│   │   └── ... (та інші файли .txt для повідомлень)
+│   │   └── ... (other .txt message files)
 │   ├── prompts/
 │   │   ├── gpt.txt
 │   │   ├── talk_cobain.txt
 │   │   ├── quiz.txt
-│   │   └── ... (та інші файли .txt для промптів GPT)
+│   │   └── ... (other GPT prompt files)
 │   └── photos/
 │       ├── main.jpg
 │       ├── gpt.jpg
 │       ├── talk.jpg
-│       └── ... (та інші файли .jpg для фото)
+│       └── ... (other image files)
 ├── bot.py
 ├── GPT.py
 ├── utils.py
 └── .env
 ```
 
-## 🚀 Запуск бота
+## 🚀 Running the bot
 
-Після встановлення залежностей та налаштування ключів, запустіть головний файл:
+After installing dependencies and configuring your keys, run the main file:
 
 ```bash
 python bot.py
 ```
-Ви побачите повідомлення "Bot started." у консолі, якщо все гаразд.
 
-## 💬 Як користуватися
+If everything is set up correctly, you’ll see **“Bot started.”** in your console.
 
-1.  Знайдіть вашого бота в Telegram і натисніть `/start`.
-2.  Використовуйте команди (`/gpt`, `/talk`, `/quiz` і т.д.), щоб увійти у відповідний режим.
-3.  Дотримуйтесь інструкцій та кнопок, які надає бот.
-4.  Щоб вийти з режиму "Розмови", "Вікторини" або "Перекладача", натисніть кнопку "Закінчити" або просто введіть команду `/start` знову.
+## 💬 How to use
+
+1. Find your bot on Telegram and press `/start`.
+2. Use commands like `/gpt`, `/talk`, `/quiz`, etc., to switch between modes.
+3. Follow the bot’s prompts and use the provided buttons.
+4. To exit modes like “Talk,” “Quiz,” or “Translate,” press the **“Finish”** button or simply type `/start` again.
